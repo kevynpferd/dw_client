@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level] %logger{0} :: %msg%n"/>
+        </Console>
+        
+        <RollingRandomAccessFile name="FileCore" fileName="logs/latest_core.log" filePattern="logs/%d{yyyy-MM-dd}/%d{yyyy-MM-dd}_core-%i.log.gz">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level] %logger{0} :: %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingRandomAccessFile>      
+        
+        <RollingRandomAccessFile name="FileSocket" fileName="logs/latest_socket.log" filePattern="logs/%d{yyyy-MM-dd}/%d{yyyy-MM-dd}_socket-%i.log.gz">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level] %logger{0} :: %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingRandomAccessFile>
+        
+        <RollingRandomAccessFile name="FileMisc" fileName="logs/latest_misc.log" filePattern="logs/%d{yyyy-MM-dd}/%d{yyyy-MM-dd}_misc-%i.log.gz">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level] %logger{0} :: %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="Core" level="all" additivity="false">
+            <AppenderRef ref="Console" level="debug"/>
+            <AppenderRef ref="FileCore"/>
+        </Logger>
+        
+        <Logger name="Socket" level="all" additivity="false">
+            <AppenderRef ref="FileSocket"/>
+        </Logger>
+
+        <Logger name="com.zaxxer.hikari" level="info" additivity="false">
+            <AppenderRef ref="Console" level="warn"/>
+            <AppenderRef ref="FileMisc"/>
+        </Logger>
+        
+        <Logger name="io.socket" level="info" additivity="false">
+            <AppenderRef ref="Console" level="warn"/>
+            <AppenderRef ref="FileMisc"/>
+        </Logger>
+
+        <Root level="debug">
+            <AppenderRef ref="Console" level="info"/>
+            <AppenderRef ref="FileMisc"/>
+        </Root>
+    </Loggers>
+</Configuration>

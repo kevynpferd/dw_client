@@ -32,32 +32,55 @@
  * 
  */
 
-package lu.kevyn.dw_client.util;
+package lu.kevyn.dw_client.system;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import lu.kevyn.dw_client.Core;
-import lu.kevyn.dw_client.system.CPU;
-import lu.kevyn.dw_client.system.Memory;
 
-import oshi.SystemInfo;
-import oshi.hardware.HardwareAbstractionLayer;
-import oshi.software.os.OperatingSystem;
-
-public class SystemUtil {
+public class SurveillanceJob implements Runnable {
 	
 	Core DW;
+
+	static Thread thread = null;
+	static Timer timer = null;
 	
-	public Memory memory;
-	public CPU cpu;
-	
-	public SystemUtil(Core DW) {
+	public SurveillanceJob(Core DW) {
 		this.DW = DW;
+	}
+	
+	public void start() {
+		if(thread != null) return;
 		
-		SystemInfo si = new SystemInfo();
-        HardwareAbstractionLayer hal = si.getHardware();
-        OperatingSystem os = si.getOperatingSystem();
+		thread = new Thread(this);
+		thread.start();
 		
-		memory = new Memory(hal.getMemory());
-		cpu = new CPU(hal.getProcessor());
+		DW.log.info("Surveillance job started.");
+	}
+	
+	public void stop() {
+		timer.cancel();
+		timer.purge();
+		timer = null;
+		
+		thread.interrupt();
+		thread = null;
+		
+		DW.log.info("Surveillance job finished.");
+	}
+	
+	@Override
+	public void run() {
+		timer = new Timer();
+		
+		timer.schedule(new TimerTask() { 
+			public void run() {
+				DW.client.send("Used memory: "+ DW.sysInfo.memory.getUsed() +" - Free memory: "+ DW.sysInfo.memory.getFree() +" - Total memory: "+ DW.sysInfo.memory.getTotal());
+				DW.sysInfo.cpu.getUsage();
+				DW.client.sendPing();
+			}
+		}, 0, 2000);
 	}
 
 }

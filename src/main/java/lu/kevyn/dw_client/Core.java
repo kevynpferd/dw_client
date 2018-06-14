@@ -37,14 +37,25 @@ package lu.kevyn.dw_client;
 import lu.kevyn.dw_client.util.LogUtil;
 import lu.kevyn.dw_client.util.SystemUtil;
 
+import java.net.URISyntaxException;
+
+import org.java_websocket.client.WebSocketClient;
+
+import lu.kevyn.dw_client.input.InputReader;
+import lu.kevyn.dw_client.system.SurveillanceJob;
+
 public class Core {
 	
 	public Boolean DEBUG = false;
 	
 	public LogUtil log;
-	//public InputReader IR;
+	public InputReader IR;
 	public SystemUtil sysInfo;
-	public Client client;
+	public WebSocketClient client;
+	public SurveillanceJob survJob;
+	
+	public static String host = "localhost";
+	public static Integer port = 8080;
 	
 	public static void main(String[] args) {
 		new Core();
@@ -54,21 +65,40 @@ public class Core {
 		log = new LogUtil();
 		
 		log.info("Starting ..");
-		log.info("Initializing loggin util(s) ..");
+		log.info("Initializing logging util(s) ..");
 
+		IR = new InputReader(this);
 		sysInfo = new SystemUtil(this);
-		client = new Client(this);
+		survJob = new SurveillanceJob(this);
 		
-		client.start();
+		try {
+			log.info("Starting socket client on "+ host +":"+ port +" ..");
+			log.socket.info("Starting socket client on "+ host +":"+ port +" ..");
+			
+			client = new Client(this);
+		} catch (URISyntaxException ex) {
+			ex.printStackTrace();
+		}
+		
+		IR.start();
+		
+		log.emptyLine();
+		log.info("Connecting to "+ host +":"+ port +" ..");
+		log.socket.info("Connecting to "+ host +":"+ port +" ..");
+		
+		client.connect();
+		//client.send("Used memory: "+ sysInfo.memory.getUsed() +" - Free memory: "+ sysInfo.memory.getFree() +" - Total memory: "+ sysInfo.memory.getTotal());
 	}
 	
 	public void quit() {
 		log.emptyLine();
 		log.info("Stopping ..");
 		
-		client.stop();
+		IR.stop();
+		client.close(0);
 		
 		log.info("DeviceWatcher Client stopped.");
+		log.emptyLine();
 		
 		System.exit(0);
 	}

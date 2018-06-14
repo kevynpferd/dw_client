@@ -34,61 +34,50 @@
 
 package lu.kevyn.dw_client;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
 import lu.kevyn.dw_client.event.ConnectEvent;
 import lu.kevyn.dw_client.event.DisconnectEvent;
 
-public class Client implements Runnable {
-
+public class Client extends WebSocketClient {
+	
 	Core DW;
 	
-	static Thread thread;
-	private Socket socket = null;
-	
-	private String host = "localhost";
-	private Integer port = 8080;
-	
-	public Client(Core DW) {
+	public Client(Core DW) throws URISyntaxException {
+		super(new URI("ws://"+ Core.host +":"+ Core.port));
+
 		this.DW = DW;
-		
-		//host = DW.config.get("Socket server > host");
-		//port = DW.config.getInt("Socket server > port");
 	}
-	
-	public void start() {
-		if(thread != null) return;
-		
-		thread = new Thread(this);
-		thread.start();
-	}
-	
-	public void stop() {
-		DW.log.info("Stopping Socket.IO client ..");
-		DW.log.socket.info("Stopping Socket.IO client ..");
-		
-		socket.disconnect();
-		thread.interrupt();
-		
-		DW.log.socket.info("Stopped Socket.IO client.");
-		
-		thread = null;
-	}
-	
+
 	@Override
-	public void run() {
-		try {
-			socket = IO.socket("http://"+ host +":"+ port);
-			socket.connect();
-			
-			socket.on(Socket.EVENT_CONNECT, new ConnectEvent(DW));
-			socket.on(Socket.EVENT_DISCONNECT, new DisconnectEvent(DW));
-		} catch (URISyntaxException ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
+	public void onOpen(ServerHandshake handshakedata) {
+		new ConnectEvent(DW, handshakedata);
+	}
+
+	@Override
+	public void onMessage(String message) {
+		if(message.equalsIgnoreCase("ping")) send("pong");
+		
+		DW.log.info("received ByteBuffer");
+	}
+
+	@Override
+	public void onClose(int code, String reason, boolean remote) {
+		new DisconnectEvent(DW, code, reason, remote);
+	}
+
+	@Override
+	public void onError(Exception ex) {
+		DW.log.error("an error occurred:" + ex);
+		ex.printStackTrace();
+	}
+	
+	public void onPong() {
+		
 	}
 	
 }

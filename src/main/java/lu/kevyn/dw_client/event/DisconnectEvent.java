@@ -34,20 +34,21 @@
 
 package lu.kevyn.dw_client.event;
 
-import io.socket.emitter.Emitter.Listener;
 import lu.kevyn.dw_client.Core;
 
-public class DisconnectEvent implements Listener {
+public class DisconnectEvent {
 	
 	Core DW;
 	
-	public DisconnectEvent(Core DW) {
+	public DisconnectEvent(Core DW, int code, String reason, boolean remote) {
 		this.DW = DW;
-	}
-
-	@Override
-	public void call(Object... args) {
-		DW.log.socket.info("Disconnected");
+		
+		String logMessage = "Disconnected from "+ Core.host +":"+ Core.port +".";
+		
+		DW.log.info(logMessage);
+		DW.log.socket.info(logMessage);
+		
+		DW.survJob.stop();
 	}
 
 }

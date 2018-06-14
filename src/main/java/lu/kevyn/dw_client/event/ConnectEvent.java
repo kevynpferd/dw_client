@@ -34,20 +34,22 @@
 
 package lu.kevyn.dw_client.event;
 
-import io.socket.emitter.Emitter.Listener;
-import lu.kevyn.dw_client.Core;
+import org.java_websocket.handshake.ServerHandshake;
 
-public class ConnectEvent implements Listener {
+import lu.kevyn.dw_client.Core;
+public class ConnectEvent {
 	
 	Core DW;
 	
-	public ConnectEvent(Core DW) {
+	public ConnectEvent(Core DW, ServerHandshake handshakedata) {
 		this.DW = DW;
-	}
-
-	@Override
-	public void call(Object... args) {
-		DW.log.socket.info("Connected");
+		
+		String logMessage = "Connected to "+ Core.host +":"+ Core.port +".";
+		
+		DW.log.info(logMessage);
+		DW.log.socket.info(logMessage);
+		
+		DW.survJob.start();
 	}
 
 }
